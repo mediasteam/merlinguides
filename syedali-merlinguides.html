@@ -1,0 +1,64 @@
+<html>
+	<head>
+		<title>Javascript Assessement - Merlin Guides</title>
+		<style>
+			#loadingGif {display: none;position: absolute;margin:10%}
+		</style>
+		<script>
+
+			// function to simulate an ajax call.
+			function loadDoc(){
+				/*
+				while waiting display loading gif
+				when done waiting hide loading gif
+				*/
+
+				document.getElementById("loadingGif").style.display = "block";
+				//reset message
+				document.getElementById("message").innerHTML = "";
+
+				//call callWhenReadyToGo function to detect if the element is loading, run executeProgram (callback) function if element is NOT loading.
+				callWhenReadyToGo(executeProgram);
+
+				setTimeout(function(){
+				    document.getElementById("loadingGif").style.display = "none";
+				},2500);
+			}
+			//detect page load using loadingGif element
+			//assumption 1: page is completely loaded, just detecting possible AJAX calls that might be running in the background
+			//assumption 2: if loadingGif id is visible then page is currently loading via some AJAX call, wait until it becomes invisible then run the callback function
+			function callWhenReadyToGo(callback){
+				//id of the element used to imply whether page loading or not. Change logic to detect using text element
+				var elementId = "loadingGif";
+				var el = document.getElementById(elementId);
+				var cssProp = window.getComputedStyle(el, null).getPropertyValue("display");
+				//element is not visible, okay to run callback function
+			    if (cssProp === "none") {
+			        if (typeof callback === "function") {
+				        callback();
+				    }
+			    } else {
+			    	//element is visible wait and call the function again. change wait time as preferred.
+			    	document.getElementById("message").innerHTML = "AJAX loading detected, waiting...";
+			        setTimeout(function(){
+					    callWhenReadyToGo(callback);
+					},900);
+			    }
+			}
+			function executeProgram(){
+				document.getElementById("message").innerHTML = "AJAX loading completed. Ready to execute code.";
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="demo">
+			<h1>Syed Ali - Merlin Guides - Assessment</h1>
+			<p id="message"></p>
+			<img id="loadingGif" src="http://thinkfuture.com/wp-content/uploads/2013/10/loading_spinner.gif" />
+			<button type="button" onclick="loadDoc()">Detect and Execute</button>
+		</div>
+
+	</body>
+
+</html>
