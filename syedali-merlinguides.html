@@ -5,48 +5,45 @@
 			#loadingGif {display: none;position: absolute;margin:10%}
 		</style>
 		<script>
+			//call callWhenReadyToGo function to detect if the element is loading, run executeProgram (callback) function if element is NOT loading.
+			callWhenReadyToGo(executeProgram);
 
 			// function to simulate an ajax call.
 			function loadDoc(){
-				/*
-				while waiting display loading gif
-				when done waiting hide loading gif
-				*/
-
 				document.getElementById("loadingGif").style.display = "block";
 				//reset message
 				document.getElementById("message").innerHTML = "";
 
-				//call callWhenReadyToGo function to detect if the element is loading, run executeProgram (callback) function if element is NOT loading.
-				callWhenReadyToGo(executeProgram);
-
-				setTimeout(function(){
-				    document.getElementById("loadingGif").style.display = "none";
-				},2500);
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+					document.getElementById("message").innerHTML = "Loading AJAX contents";
+				    if (this.readyState == 4 && this.status == 200) {
+			    		document.getElementById("loadingGif").style.display = "none";
+		 				document.getElementById("message").innerHTML = this.responseText;
+					}
+				};
+				xhttp.open("GET", "test.txt", true);
+				xhttp.send(); 
 			}
-			//detect page load using loadingGif element
-			//assumption 1: page is completely loaded, just detecting possible AJAX calls that might be running in the background
-			//assumption 2: if loadingGif id is visible then page is currently loading via some AJAX call, wait until it becomes invisible then run the callback function
+
 			function callWhenReadyToGo(callback){
-				//id of the element used to imply whether page loading or not. Change logic to detect using text element
-				var elementId = "loadingGif";
-				var el = document.getElementById(elementId);
-				var cssProp = window.getComputedStyle(el, null).getPropertyValue("display");
-				//element is not visible, okay to run callback function
-			    if (cssProp === "none") {
-			        if (typeof callback === "function") {
-				        callback();
-				    }
-			    } else {
-			    	//element is visible wait and call the function again. change wait time as preferred.
-			    	document.getElementById("message").innerHTML = "AJAX loading detected, waiting...";
-			        setTimeout(function(){
-					    callWhenReadyToGo(callback);
-					},900);
-			    }
+				(function(open) {
+					XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+					    this.addEventListener("readystatechange", function() {
+					    	document.getElementById("message").innerHTML = "AJAX call intercepted";
+					        if (this.readyState == 4 && this.status == 200) {
+					        	if (typeof callback === "function") {
+									executeProgram();
+							    }
+					        }
+					    }, false);
+
+					    open.call(this, method, url, async, user, pass);
+					};
+				})(XMLHttpRequest.prototype.open);
 			}
 			function executeProgram(){
-				document.getElementById("message").innerHTML = "AJAX loading completed. Ready to execute code.";
+				document.getElementById("message").innerHTML = "AJAX loading completed. Ready to execute next code.";
 			}
 		</script>
 	</head>
